@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import pollRoutes from './routes/pollRoutes';
+import userRoutes from './routes/userRoutes';
 
 const app = express();
 const port = 3000;
@@ -19,6 +20,8 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 app.use('/api', pollRoutes);
+
+app.use('/api', userRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
