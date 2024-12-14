@@ -34,73 +34,73 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual(mockPolls);
     });
 
-    // it('should return 500 when polls routes is called if there is an error', async () => {
-    //     (pool.query as jest.Mock).mockRejectedValueOnce({
-    //         message: 'Database error',
-    //     } as never);
+    it('should return 500 when polls routes is called if there is an error', async () => {
+        (pool.query as jest.Mock).mockRejectedValueOnce({
+            message: 'Database error',
+        } as never);
 
-    //     const response = await request(app).get('/api/polls');
+        const response = await request(app).get('/api/polls');
 
-    //     expect(response.status).toBe(500);
-    //     expect(response.body).toEqual({ error: 'Database error' });
-    // });
+        expect(response.status).toBe(500);
+        expect(response.body).toEqual({ error: 'Database error' });
+    });
 
-    // it('should return status code 201 when a poll is successed created', async () => {
-    //     const mockResult = { insertId: 2 };
-    //     (pool.query as jest.Mock).mockReturnValue([mockResult]);
+    it('should return status code 201 when a poll is successed created', async () => {
+        const mockResult = { insertId: 2 };
+        (pool.query as jest.Mock).mockReturnValue([mockResult]);
 
-    //     const response = await request(app).post('/api/polls').send({
-    //         ...mockPoll,
-    //         id: undefined
-    //     });
+        const response = await request(app).post('/api/polls').send({
+            ...mockPoll,
+            id: undefined
+        });
 
-    //     expect(response.status).toBe(201);
-    //     expect(response.body).toEqual({ id: 2 });
-    // });
+        expect(response.status).toBe(201);
+        expect(response.body).toEqual({ id: 2 });
+    });
 
-    // it('should return status code 400 when is missing some information in post polls call', async () => {
-    //     const response = await request(app).post('/api/polls').send({
-    //         ...mockPoll,
-    //         id: undefined,
-    //         title: undefined
-    //     });
+    it('should return status code 400 when is missing some information in post polls call', async () => {
+        const response = await request(app).post('/api/polls').send({
+            ...mockPoll,
+            id: undefined,
+            title: undefined
+        });
 
-    //     expect(response.status).toBe(400);
-    //     expect(response.body).toEqual({ error: 'Invalid request' });
-    // });
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ error: 'Invalid request' });
+    });
 
-    // it('should return status code 201 when a vote poll is success', async () => {
+    it('should return status code 201 when a vote poll is success', async () => {
 
-    //     const mockResult = { insertId: 1 };
-    //     (pool.query as jest.Mock).mockReturnValue([mockResult]);
+        const mockResult = { insertId: 1 };
+        (pool.query as jest.Mock).mockReturnValue([mockResult]);
 
-    //     const response = await request(app).post('/api/polls/vote').send(
-    //         mockVotePoll
-    //     );
+        const response = await request(app).post('/api/polls/vote').send(
+            mockVotePoll
+        );
 
-    //     expect(response.status).toBe(201);
-    //     expect(response.body).toEqual({ id: 1 });
-    // });
+        expect(response.status).toBe(201);
+        expect(response.body).toEqual({ id: 1 });
+    });
 
-    // it('should return status code 400 when is missing some information in post vote call', async () => {
-    //     const response = await request(app).post('/api/polls').send({
-    //         ...mockVotePoll,
-    //         poll_id: undefined
-    //     });
+    it('should return status code 400 when is missing some information in post vote call', async () => {
+        const response = await request(app).post('/api/polls').send({
+            ...mockVotePoll,
+            poll_id: undefined
+        });
 
-    //     expect(response.status).toBe(400);
-    //     expect(response.body).toEqual({ error: 'Invalid request' });
-    // });
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ error: 'Invalid request' });
+    });
 
-    // it('should return status code 200 when getPollResults is success', async () => {
-    //     const pollId = 1;
-    //     const mockResult = { option_id: 1, count: 10 };
-    //     (pool.query as jest.Mock).mockReturnValue([mockResult]);
+    it('should return status code 200 when getPollResults is success', async () => {
+        const pollId = 1;
+        const mockResult = { option_id: 1, count: 10 };
+        (pool.query as jest.Mock).mockReturnValue([mockResult]);
 
-    //     const response = await request(app).get(`/api/polls/${pollId}/results`);
+        const response = await request(app).get(`/api/polls/${pollId}/results`);
 
-    //     expect(response.status).toBe(200);
-    //     expect(response.body).toEqual(mockResult);
-    // });
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual(mockResult);
+    });
 
 });
