@@ -44,6 +44,16 @@ foreign key (user_id) references users(id),
 unique (poll_id, user_id)
 );
 
+create table comments(
+    id int auto_increment primary key,
+    poll_id int,
+    user_id int,
+    content TEXT not null,
+    created_at timestamp default current_timestamp,
+    foreign key (poll_id) references polls(id),
+    foreign key (user_id) references users(id)
+);
+
 INSERT INTO poll_types (type_name) VALUES ('multiple_choice'), ('single_choice'), ('open_response');
 
 insert into users (username, password) values ('teste1', 'teste1'), ('teste2', 'teste2');
