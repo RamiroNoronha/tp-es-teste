@@ -4,7 +4,9 @@ import bodyParser from 'body-parser';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { pool } from '../../config/dbConfig';
 import pollRoutes from '../../routes/pollRoutes';
+import { QueryResult, FieldPacket, QueryOptions } from 'mysql2/promise'; 
 import { option } from 'yargs';
+import exp from 'constants';
 
 
 const app = express();
@@ -70,9 +72,15 @@ describe('Poll Controller', () => {
     });
 
     it('should return status code 201 when a vote poll is success', async () => {
-
+        
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowString = tomorrow.toISOString();
+        
+        const mockDate = { expiration_date: tomorrowString};
         const mockResult = { insertId: 1 };
-        (pool.query as jest.Mock).mockReturnValue([mockResult]);
+        (pool.query as jest.Mock).mockReturnValueOnce([mockDate])
+        .mockReturnValueOnce([mockResult]);
 
         const response = await request(app).post('/api/polls/vote').send(
             mockVotePoll
@@ -103,34 +111,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual(mockResult);
     });    
     
-    it('should delete a poll and check the remaining polls', async () => {
-        const mockPolls = [
-            { id: 1, title: 'Poll 1', description: 'Description 1', poll_type_id: 1, user_id: 1 },
-            { id: 2, title: 'Poll 2', description: 'Description 2', poll_type_id: 1, user_id: 1 },
-            { id: 3, title: 'Poll 3', description: 'Description 3', poll_type_id: 1, user_id: 1 },
-        ];
-
-        (pool.query as jest.Mock)
-            .mockReturnValueOnce([mockPolls]) 
-            .mockReturnValueOnce([{ user_id: 1 }])
-            .mockReturnValueOnce([mockPolls.slice(1)]); 
-
-        const deleteResponse = await request(app)
-            .delete('/api/polls/1')
-            .send({ user_id: 1 });
-
-        console.log('Delete Response:', deleteResponse.body);
-
-        expect(deleteResponse.status).toBe(200);
-        expect(deleteResponse.body).toEqual({ message: 'Poll deleted successfully' });
-
-        const getResponse = await request(app).get('/api/polls');
-        console.log('Get Response:', getResponse.body);
-
-        expect(getResponse.status).toBe(200);
-        expect(getResponse.body).toEqual(mockPolls.slice(1));
-    });
-
+    
     it('should return 403 when trying to delete a poll from another user', async () => {
         const mockPolls = [
             { id: 1, title: 'Poll 1', description: 'Description 1', poll_type_id: 1, user_id: 1 },

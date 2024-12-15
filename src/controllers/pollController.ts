@@ -4,10 +4,10 @@ import { ResultSetHeader } from 'mysql2/promise';
 
 interface Poll {
     user_id: number;
-  }
+    expiration_date: Date;
+}
 
-
-export const getPolls = async (req: Request, res: Response) => {
+export const getPolls = async (req: Request, res: Response): Promise<void> => {
     try {
         const [rows] = await pool.query('SELECT * FROM polls');
         res.status(200).json(rows);
@@ -16,7 +16,7 @@ export const getPolls = async (req: Request, res: Response) => {
     }
 };
 
-export const createPoll = async (req: Request, res: Response) => {
+export const createPoll = async (req: Request, res: Response): Promise<void> => {
     const { title, description, poll_type_id, user_id } = req.body;
 
     if (!title || !description || !poll_type_id || !user_id) {
@@ -35,7 +35,7 @@ export const createPoll = async (req: Request, res: Response) => {
     }
 };
 
-export const votePoll = async (req: Request, res: Response) => {
+export const votePoll = async (req: Request, res: Response): Promise<void> => {
     const { poll_id, option_id, user_id } = req.body;
 
     if (!poll_id || !option_id || !user_id) {
@@ -44,6 +44,25 @@ export const votePoll = async (req: Request, res: Response) => {
     }
 
     try {
+        // Check if the poll is expired
+        const [poll] = await pool.query(
+            'SELECT expiration_date FROM polls WHERE id = ?',
+            [poll_id]
+        );
+
+        if (!poll) {
+            res.status(404).json({ error: 'Poll not found' });
+            return;
+        }
+
+
+        const expiration = (poll as any).expiration_date;
+        const currentDate = new Date();
+        if (expiration && new Date(expiration) < currentDate) {
+            res.status(400).json({ error: 'Poll has expired' });
+            return;
+        }
+
         const [result] = await pool.query(
             'INSERT INTO votes (poll_id, option_id, user_id) VALUES (?, ?, ?)',
             [poll_id, option_id, user_id]
@@ -54,7 +73,7 @@ export const votePoll = async (req: Request, res: Response) => {
     }
 };
 
-export const getPollResults = async (req: Request, res: Response) => {
+export const getPollResults = async (req: Request, res: Response): Promise<void> => {
     const { poll_id } = req.params;
 
     try {
@@ -107,6 +126,49 @@ export const deletePoll = async (req: Request, res: Response): Promise<void> => 
         res.status(200).json({ message: 'Poll deleted successfully' });
     } catch (error) {
         console.error('Delete poll error:', error);
-        res.status(500).json({ error: (error as Error).message });;
+        res.status(500).json({ error: (error as Error).message });
+    }
+};
+
+export const setPollExpiration = async (req: Request, res: Response): Promise<void> => {
+    const { poll_id } = req.params;
+    const { user_id, expiration_date } = req.body;
+
+    try {
+        if (!poll_id || !user_id || !expiration_date) {
+            res.status(400).json({ message: 'Poll ID, User ID, and Expiration Date are required' });
+            return;
+        }
+
+        const pollIdNum = Number(poll_id);
+        const userIdNum = Number(user_id);
+
+        const [pollRows] = await pool.query(
+            'SELECT user_id FROM polls WHERE id = ?',
+            [pollIdNum]
+        );
+
+        const polls = pollRows as Poll[];
+
+        if (polls.length === 0) {
+            res.status(404).json({ message: 'Poll not found' });
+            return;
+        }
+
+        const poll = polls[0];
+        if (poll.user_id !== userIdNum) {
+            res.status(403).json({ message: 'You are not authorized to update this poll' });
+            return;
+        }
+
+        await pool.query(
+            'UPDATE polls SET expiration_date = ? WHERE id = ?',
+            [expiration_date, pollIdNum]
+        );
+
+        res.status(200).json({ message: 'Poll expiration date set successfully' });
+    } catch (error) {
+        console.error('Set poll expiration error:', error);
+        res.status(500).json({ error: (error as Error).message });
     }
 };
