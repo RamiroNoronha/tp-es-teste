@@ -143,20 +143,17 @@ export const setPollExpiration = async (req: Request, res: Response): Promise<vo
         const pollIdNum = Number(poll_id);
         const userIdNum = Number(user_id);
 
-        const [pollRows] = await pool.query(
+        const [result] = await pool.query(
             'SELECT user_id FROM polls WHERE id = ?',
             [pollIdNum]
-        );
+        ) as any[];
 
-        const polls = pollRows as Poll[];
-
-        if (polls.length === 0) {
+        if (!result) {
             res.status(404).json({ message: 'Poll not found' });
             return;
         }
 
-        const poll = polls[0];
-        if (poll.user_id !== userIdNum) {
+        if (result.user_id !== userIdNum) {
             res.status(403).json({ message: 'You are not authorized to update this poll' });
             return;
         }
@@ -168,7 +165,6 @@ export const setPollExpiration = async (req: Request, res: Response): Promise<vo
 
         res.status(200).json({ message: 'Poll expiration date set successfully' });
     } catch (error) {
-        console.error('Set poll expiration error:', error);
         res.status(500).json({ error: (error as Error).message });
     }
 };
