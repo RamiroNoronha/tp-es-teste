@@ -1,5 +1,10 @@
 import { Request, Response } from 'express';
 import { pool } from '../config/dbConfig';
+import { ResultSetHeader } from 'mysql2/promise';
+
+interface Poll {
+    user_id: number;
+  }
 
 
 export const getPolls = async (req: Request, res: Response) => {
@@ -60,5 +65,48 @@ export const getPollResults = async (req: Request, res: Response) => {
         res.status(200).json(rows);
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });
+    }
+};
+
+export const deletePoll = async (req: Request, res: Response): Promise<void> => {
+    const { poll_id } = req.params;
+    const { user_id } = req.body;
+
+    try {
+        if (!poll_id || !user_id) {
+            res.status(400).json({ message: 'Poll ID and User ID are required' });
+            return;
+        }
+
+        const pollIdNum = Number(poll_id);
+        const userIdNum = Number(user_id);
+
+        const [pollRows] = await pool.query(
+            'SELECT user_id FROM polls WHERE id = ?',
+            [pollIdNum]
+        );
+
+        const polls = pollRows as Poll[];
+
+        if (polls.length === 0) {
+            res.status(404).json({ message: 'Poll not found' });
+            return;
+        }
+
+        const poll = polls[0];
+        if (poll.user_id !== userIdNum) {
+            res.status(403).json({ message: 'You are not authorized to delete this poll' });
+            return;
+        }
+
+        await pool.query(
+            'DELETE FROM polls WHERE id = ?',
+            [pollIdNum]
+        );
+
+        res.status(200).json({ message: 'Poll deleted successfully' });
+    } catch (error) {
+        console.error('Delete poll error:', error);
+        res.status(500).json({ error: (error as Error).message });;
     }
 };

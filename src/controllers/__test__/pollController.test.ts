@@ -101,6 +101,51 @@ describe('Poll Controller', () => {
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual(mockResult);
+    });    
+    
+    it('should delete a poll and check the remaining polls', async () => {
+        const mockPolls = [
+            { id: 1, title: 'Poll 1', description: 'Description 1', poll_type_id: 1, user_id: 1 },
+            { id: 2, title: 'Poll 2', description: 'Description 2', poll_type_id: 1, user_id: 1 },
+            { id: 3, title: 'Poll 3', description: 'Description 3', poll_type_id: 1, user_id: 1 },
+        ];
+
+        (pool.query as jest.Mock)
+            .mockReturnValueOnce([mockPolls]) 
+            .mockReturnValueOnce([{ user_id: 1 }])
+            .mockReturnValueOnce([mockPolls.slice(1)]); 
+
+        const deleteResponse = await request(app)
+            .delete('/api/polls/1')
+            .send({ user_id: 1 });
+
+        console.log('Delete Response:', deleteResponse.body);
+
+        expect(deleteResponse.status).toBe(200);
+        expect(deleteResponse.body).toEqual({ message: 'Poll deleted successfully' });
+
+        const getResponse = await request(app).get('/api/polls');
+        console.log('Get Response:', getResponse.body);
+
+        expect(getResponse.status).toBe(200);
+        expect(getResponse.body).toEqual(mockPolls.slice(1));
     });
 
+    it('should return 403 when trying to delete a poll from another user', async () => {
+        const mockPolls = [
+            { id: 1, title: 'Poll 1', description: 'Description 1', poll_type_id: 1, user_id: 1 },
+        ];
+
+        (pool.query as jest.Mock)
+            .mockReturnValueOnce([mockPolls]) // Initial getPolls call
+            .mockReturnValueOnce([{ user_id: 1 }]); // Check poll owner
+
+        // Attempt to delete the poll with a different user_id
+        const deleteResponse = await request(app)
+            .delete('/api/polls/1')
+            .send({ user_id: 2 });
+
+        expect(deleteResponse.status).toBe(403);
+        expect(deleteResponse.body).toEqual({ message: 'You are not authorized to delete this poll' });
+    });
 });
