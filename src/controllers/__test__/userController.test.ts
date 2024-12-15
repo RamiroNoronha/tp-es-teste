@@ -23,7 +23,7 @@ describe('User Controller', () => {
         jest.clearAllMocks();
     });
 
-    it('should get all users', async () => {
+    it('should get all users successfully', async () => {
         const mockUsers = [{ id: 1, username: 'user1', password: 'pass1' }];
         (pool.query as jest.Mock).mockReturnValue([mockUsers]);
 
@@ -33,7 +33,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual(mockUsers);
     });
 
-    it('should return 500 when users routes is called if there is an error', async () => {
+    it('should return 500 when there is a database error while getting users', async () => {
         (pool.query as jest.Mock).mockRejectedValueOnce({
             message: 'Database error',
         } as never);
@@ -44,7 +44,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ error: 'Database error' });
     });
 
-    it('should create a new user', async () => {
+    it('should create a new user successfully', async () => {
         const newUser = { username: 'user2', password: 'pass2' };
         (pool.query as jest.Mock).mockReturnValue([{ insertId: 2 }]);
 
@@ -56,7 +56,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ id: 2 });
     });
 
-    it('should return status code 400 when username is undefined in the post route users', async () => {
+    it('should return 400 when creating a user with missing username', async () => {
         const newUser = { password: 'pass2' };
 
         const response = await request(app)
@@ -67,7 +67,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ error: 'Invalid request' });
     });
 
-    it('should return status code 400 when password is undefined in the post route users', async () => {
+    it('should return 400 when creating a user with missing password', async () => {
         const newUser = { username: 'user2', };
 
         const response = await request(app)
@@ -78,7 +78,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ error: 'Invalid request' });
     });
 
-    it('should return 500 when users post routes is called if there is an error', async () => {
+    it('should return 500 when there is a database error while creating a user', async () => {
         const newUser = { username: 'user2', password: 'pass2' };
 
         (pool.query as jest.Mock).mockRejectedValueOnce({
@@ -91,7 +91,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ error: 'Database error' });
     });
 
-    it('should get a specific user when call getUserById with a existet user', async () => {
+    it('should get a specific user by ID successfully', async () => {
         const mockUsers = [{ id: 1, username: 'user1', password: 'pass1' }];
         (pool.query as jest.Mock).mockReturnValue([mockUsers]);
 
@@ -102,7 +102,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual(mockUsers[0]);
     });
 
-    it('should return status code 404 when the user is not founded', async () => {
+    it('should return 404 when the user is not found', async () => {
         (pool.query as jest.Mock).mockReturnValue([[]]);
 
         const userId = 1;
@@ -112,7 +112,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ error: 'User not found' });
     });
 
-    it('should return status code 200 when affectedRows is bigger then 0', async () => {
+    it('should update a user successfully when affectedRows is greater than 0', async () => {
         const updatedUser = { username: 'user2', password: 'pass2' };
         const userId = 1;
         (pool.query as jest.Mock).mockReturnValue([{ affectedRows: 1 }]);
@@ -125,7 +125,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ message: 'User updated successfully' });
     });
 
-    it('should return status code 404 when has no affectedRows', async () => {
+    it('should return 404 when updating a user that does not exist', async () => {
         const updatedUser = { username: 'user2', password: 'pass2' };
         const userId = 1;
         (pool.query as jest.Mock).mockReturnValue([{ affectedRows: 0 }]);
@@ -138,7 +138,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ error: 'User not found' });
     });
 
-    it('should return status code 400 when has no username neither password', async () => {
+    it('should return 400 when updating a user with missing username and password', async () => {
         const updatedUser = {};
         const userId = 1;
 
@@ -150,7 +150,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ error: 'Invalid request' });
     });
 
-    it('should return status code 200 when has one affectedRows when deleting a user', async () => {
+    it('should delete a user successfully when affectedRows is greater than 0', async () => {
         const userId = 1;
         (pool.query as jest.Mock).mockReturnValue([{ affectedRows: 1 }]);
 
@@ -161,7 +161,7 @@ describe('User Controller', () => {
         expect(response.body).toEqual({ message: 'User deleted successfully' });
     });
 
-    it('should return status code 404 when has no affectedRows when deleting a user', async () => {
+    it('should return 404 when deleting a user that does not exist', async () => {
         const userId = 1;
         (pool.query as jest.Mock).mockReturnValue([{ affectedRows: 0 }]);
 

@@ -44,7 +44,6 @@ export const votePoll = async (req: Request, res: Response): Promise<void> => {
     }
 
     try {
-        // Check if the poll is expired
         const [poll] = await pool.query(
             'SELECT expiration_date FROM polls WHERE id = ?',
             [poll_id]

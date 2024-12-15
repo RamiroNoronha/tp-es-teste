@@ -1,7 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import bodyParser from 'body-parser';
-import { beforeEach, afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { addComment, getComments } from '../commentController';
 import { pool } from '../../config/dbConfig';
 
@@ -23,7 +23,7 @@ describe('Comment Controller', () => {
     jest.clearAllMocks();
   });
 
-  it('should add a new comment', async () => {
+  it('should add a new comment successfully', async () => {
     const mockResult = { insertId: 1 };
     (pool.query as jest.Mock).mockReturnValue([mockResult]);
 
@@ -35,7 +35,7 @@ describe('Comment Controller', () => {
     expect(response.body).toEqual({ id: 1, pollId: 1, userId: 1, content: 'Test comment' });
   });
 
-  it('should get comments for a poll', async () => {
+  it('should retrieve comments for a specific poll', async () => {
     const mockComments = [{ id: 1, pollId: 1, userId: 1, content: 'Test comment', created_at: '2023-01-01T00:00:00.000Z' }];
     (pool.query as jest.Mock).mockReturnValue([mockComments]);
 

@@ -27,7 +27,7 @@ describe('Poll Controller', () => {
         jest.resetAllMocks();
     });
 
-    it('should get all polls', async () => {
+    it('should get poll results successfully', async () => {
         const mockPolls = [mockPoll];
         (pool.query as jest.Mock).mockReturnValue([mockPolls]);
 
@@ -37,7 +37,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual(mockPolls);
     });
 
-    it('should return 500 when polls routes is called if there is an error', async () => {
+    it('should return 500 when there is a database error while getting polls', async () => {
         (pool.query as jest.Mock).mockRejectedValueOnce({
             message: 'Database error',
         } as never);
@@ -48,7 +48,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ error: 'Database error' });
     });
 
-    it('should return status code 201 when a poll is successed created', async () => {
+    it('should create a poll successfully', async () => {
         const mockResult = { insertId: 2 };
         (pool.query as jest.Mock).mockReturnValue([mockResult]);
 
@@ -61,7 +61,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ id: 2 });
     });
 
-    it('should return status code 400 when is missing some information in post polls call', async () => {
+    it('should return 400 when creating a poll with missing information', async () => {
         const response = await request(app).post('/api/polls').send({
             ...mockPoll,
             id: undefined,
@@ -72,7 +72,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ error: 'Invalid request' });
     });
 
-    it('should return status code 201 when a vote poll is success', async () => {
+    it('should allow voting on a poll successfully', async () => {
 
         const mockDate = { expiration_date: null };
         const mockResult = { insertId: 1 };
@@ -87,7 +87,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ id: 1 });
     });
 
-    it('should return 400 when poll is expired', async () => {
+    it('should return 400 when trying to vote on an expired poll', async () => {
 
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -106,7 +106,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ error: 'Poll has expired' });
     });
 
-    it('should return status code 400 when is missing a body property when call polls/vote route', async () => {
+    it('should return 400 when voting on a poll with missing information', async () => {
         const response = await request(app).post('/api/polls/vote').send(
             {
                 ...mockVotePoll,
@@ -118,8 +118,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ error: 'Invalid request' });
     });
 
-    it('should return status code 200 when getPollResults is success', async () => {
-        const pollId = 1;
+    it('should get poll results successfully', async () => {
         const mockResult = { option_id: 1, count: 10 };
         (pool.query as jest.Mock).mockReturnValue([mockResult]);
 
@@ -129,7 +128,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual(mockResult);
     });
 
-    it('should return status code 404 when a vote poll_id not finded in the query', async () => {
+    it('should return 404 when trying to vote on a non-existent poll', async () => {
 
         (pool.query as jest.Mock).mockReturnValueOnce([]);
 
@@ -142,7 +141,7 @@ describe('Poll Controller', () => {
     });
 
 
-    it('should return 400 when the body is missing the user id in delete operator for a poll', async () => {
+    it('should return 400 when deleting a poll with missing user id', async () => {
         const deleteResponse = await request(app)
             .delete('/api/polls/1')
             .send({});
@@ -151,7 +150,7 @@ describe('Poll Controller', () => {
         expect(deleteResponse.body).toEqual({ message: 'Poll ID and User ID are required' });
     });
 
-    it('should return 404 when trying to delete a poll from a user that not have any poll', async () => {
+    it('should return 404 when trying to delete a non-existent poll', async () => {
         (pool.query as jest.Mock)
             .mockReturnValueOnce([[]]);
 
@@ -180,7 +179,7 @@ describe('Poll Controller', () => {
         expect(deleteResponse.body).toEqual({ message: 'You are not authorized to delete this poll' });
     });
 
-    it('should return 200 when a user try to delete his poll', async () => {
+    it('should delete a poll successfully when the user is authorized', async () => {
         const mockPolls = [
             { id: 1, title: 'Poll 1', description: 'Description 1', poll_type_id: 1, user_id: 1 },
         ];
@@ -197,8 +196,7 @@ describe('Poll Controller', () => {
         expect(deleteResponse.body).toEqual({ message: 'Poll deleted successfully' });
     });
 
-    it('should return status code 400 when body for expire route is missing some information', async () => {
-        const pollId = 1;
+    it('should return 400 when setting poll expiration with missing information', async () => {
 
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -211,8 +209,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ message: 'Poll ID, User ID, and Expiration Date are required' });
     });
 
-    it('should return status code 403 when the usuary is not authorized to update the poll', async () => {
-        const pollId = 1;
+    it('should return 403 when the user is not authorized to set poll expiration', async () => {
 
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -229,8 +226,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ message: 'You are not authorized to update this poll' });
     });
 
-    it('should return status code 404 when the poll is not finded', async () => {
-        const pollId = 1;
+    it('should return 404 when trying to set expiration for a non-existent poll', async () => {
 
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -246,8 +242,7 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ message: 'Poll not found' });
     });
 
-    it('should return status code 200 when the usuary is authorized to update the poll', async () => {
-        const pollId = 1;
+    it('should set poll expiration successfully when the user is authorized', async () => {
 
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
