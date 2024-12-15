@@ -26,6 +26,10 @@ describe('Poll Controller', () => {
     const mockPoll = { id: 1, title: 'My test poll', description: `It's just a test poll`, poll_type_id: 1, user_id: 1 };
     const mockVotePoll = { poll_id: 1, option_id: 1, user_id: 1 };
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it('should get all polls', async () => {
         const mockPolls = [mockPoll];
         (pool.query as jest.Mock).mockReturnValue([mockPolls]);
@@ -72,12 +76,8 @@ describe('Poll Controller', () => {
     });
 
     it('should return status code 201 when a vote poll is success', async () => {
-        
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowString = tomorrow.toISOString();
-        
-        const mockDate = { expiration_date: tomorrowString};
+                
+        const mockDate = { expiration_date: null};
         const mockResult = { insertId: 1 };
         (pool.query as jest.Mock).mockReturnValueOnce([mockDate])
         .mockReturnValueOnce([mockResult]);
@@ -90,11 +90,32 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual({ id: 1 });
     });
 
-    it('should return status code 400 when is missing some information in post vote call', async () => {
-        const response = await request(app).post('/api/polls').send({
-            ...mockVotePoll,
-            poll_id: undefined
-        });
+    it('should return 400 when poll is expired', async () => {
+
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayString = yesterday.toISOString();
+
+        const mockDate = { expiration_date: yesterdayString};
+        const mockResult = { insertId: 1 };
+        (pool.query as jest.Mock).mockReturnValueOnce([mockDate])
+        .mockReturnValueOnce([mockResult]);
+
+        const response = await request(app).post('/api/polls/vote').send(
+            mockVotePoll
+        );
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ error: 'Poll has expired' });
+    });
+
+    it('should return status code 400 when is missing a body property when call polls/vote route', async () => {
+        const response = await request(app).post('/api/polls/vote').send(
+            {
+                ...mockVotePoll,
+                poll_id: undefined
+            }
+        );
 
         expect(response.status).toBe(400);
         expect(response.body).toEqual({ error: 'Invalid request' });
@@ -111,6 +132,17 @@ describe('Poll Controller', () => {
         expect(response.body).toEqual(mockResult);
     });    
     
+    it('should return status code 404 when a vote poll_id not finded in the query', async () => {
+
+        (pool.query as jest.Mock).mockReturnValueOnce([]);
+
+        const response = await request(app).post('/api/polls/vote').send(
+            mockVotePoll
+        );
+
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({ error: 'Poll not found' });
+    });
     
     it('should return 403 when trying to delete a poll from another user', async () => {
         const mockPolls = [
