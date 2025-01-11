@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 
 export const getUsers = (dataSource: DataSource) => async (req: Request, res: Response) => {
     try {
-        const [rows] = await dataSource.query('SELECT * FROM users');
+        const rows = await dataSource.query('SELECT * FROM users');
         res.status(200).json(rows);
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });
@@ -19,8 +19,7 @@ export const createUser = (dataSource: DataSource) => async (req: Request, res: 
     }
 
     try {
-
-        const [result] = await dataSource.query(
+        const result = await dataSource.query(
             'INSERT INTO users (username, password) VALUES (?, ?)',
             [username, password]
         );

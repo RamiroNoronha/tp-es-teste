@@ -1,6 +1,4 @@
 import { Request, Response } from 'express';
-import { dataSource } from '../config/dbConfig';
-import { ResultSetHeader } from 'mysql2/promise';
 import { DataSource } from 'typeorm';
 
 interface Poll {
