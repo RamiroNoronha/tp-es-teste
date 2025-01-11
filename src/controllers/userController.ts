@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import { DataSource } from 'typeorm';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
 
 export const getUsers = (dataSource: DataSource) => async (req: Request, res: Response) => {
     try {
@@ -80,3 +83,32 @@ export const deleteUser = (dataSource: DataSource) => async (req: Request, res: 
         res.status(500).json({ error: (error as Error).message });
     }
 };
+
+export const loginUser = (dataSource: DataSource) => async (req: Request, res: Response) => {
+    const { username, password } = req.body;
+  
+    if (!username || !password) {
+      res.status(400).json({ error: 'Invalid request' });
+      return;
+    }
+  
+    try {
+      const [rows] = await dataSource.query('SELECT * FROM users WHERE username = ?', [username]);
+      if (rows.length === 0) {
+        res.status(404).json({ error: 'User not found' });
+        return;
+      }
+  
+      const user = rows[0];
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        res.status(401).json({ error: 'Invalid password' });
+        return;
+      }
+  
+      const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
+      res.status(200).json({ token });
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  };
