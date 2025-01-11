@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { pool } from '../config/dbConfig';
+import { dataSource } from '../config/dbConfig';
+import { DataSource } from 'typeorm';
 
-export const addComment = async (req: Request, res: Response) => {
+export const addComment = (dataSource: DataSource) => async (req: Request, res: Response) => {
   const { pollId, userId, content } = req.body;
   try {
     if (!pollId || !userId || !content) {
@@ -9,7 +10,7 @@ export const addComment = async (req: Request, res: Response) => {
       return;
     }
 
-    const [results] = await pool.query(
+    const [results] = await dataSource.query(
       'INSERT INTO comments (poll_id, user_id, content) VALUES (?, ?, ?)',
       [pollId, userId, content]
     );
@@ -26,10 +27,10 @@ export const addComment = async (req: Request, res: Response) => {
 };
 
 
-export const getComments = async (req: Request, res: Response) => {
+export const getComments = (dataSource: DataSource) => async (req: Request, res: Response) => {
   const pollId = req.params.pollId;
   try {
-    const [results] = await pool.query(
+    const [results] = await dataSource.query(
       'SELECT * FROM comments WHERE poll_id = ?',
       [pollId]
     );

@@ -1,9 +1,14 @@
-import express from 'express';
+import { Router } from 'express';
 import { addComment, getComments } from '../controllers/commentController';
+import { DataSource } from 'typeorm';
 
-const router = express.Router();
+const createCommentRoutes = (dataSource: DataSource) => {
+    const router = Router();
 
-router.post('/comments', addComment);
-router.get('/comments/:pollId', getComments);
+    router.post('/comments', addComment(dataSource));
+    router.get('/comments/:pollId', getComments(dataSource));
 
-export default router;
+    return router;
+};
+
+export default createCommentRoutes;

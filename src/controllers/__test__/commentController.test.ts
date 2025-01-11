@@ -3,17 +3,17 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { addComment, getComments } from '../commentController';
-import { pool } from '../../config/dbConfig';
+import { dataSource } from '../../config/dbConfig';
 
 
 
 const app = express();
 app.use(bodyParser.json());
-app.post('/comments', addComment);
-app.get('/comments/:pollId', getComments);
+app.post('/comments', addComment(dataSource));
+app.get('/comments/:pollId', getComments(dataSource));
 
 jest.mock('../../config/dbConfig', () => ({
-  pool: {
+  dataSource: {
     query: jest.fn(),
   },
 }));
@@ -25,7 +25,7 @@ describe('Comment Controller', () => {
 
   it('should add a new comment successfully', async () => {
     const mockResult = { insertId: 1 };
-    (pool.query as jest.Mock).mockReturnValue([mockResult]);
+    (dataSource.query as jest.Mock).mockReturnValue([mockResult]);
 
     const response = await request(app)
       .post('/comments')
@@ -37,7 +37,7 @@ describe('Comment Controller', () => {
 
   it('should retrieve comments for a specific poll', async () => {
     const mockComments = [{ id: 1, pollId: 1, userId: 1, content: 'Test comment', created_at: '2023-01-01T00:00:00.000Z' }];
-    (pool.query as jest.Mock).mockReturnValue([mockComments]);
+    (dataSource.query as jest.Mock).mockReturnValue([mockComments]);
 
     const response = await request(app).get('/comments/1');
 
@@ -49,9 +49,9 @@ describe('Comment Controller', () => {
     const response = await request(app)
       .post('/comments')
       .send({ pollId: 1, userId: 1, content: null });
-  
+
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ error: 'Invalid request' });
   });
-  
+
 });

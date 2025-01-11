@@ -1,22 +1,23 @@
 import { Request, Response } from 'express';
-import { pool } from '../config/dbConfig';
+import { dataSource } from '../config/dbConfig';
 import { ResultSetHeader } from 'mysql2/promise';
+import { DataSource } from 'typeorm';
 
 interface Poll {
     user_id: number;
     expiration_date: Date;
 }
 
-export const getPolls = async (req: Request, res: Response): Promise<void> => {
+export const getPolls = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
     try {
-        const [rows] = await pool.query('SELECT * FROM polls');
+        const [rows] = await dataSource.query('SELECT * FROM polls');
         res.status(200).json(rows);
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });
     }
 };
 
-export const createPoll = async (req: Request, res: Response): Promise<void> => {
+export const createPoll = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
     const { title, description, poll_type_id, user_id } = req.body;
 
     if (!title || !description || !poll_type_id || !user_id) {
@@ -25,7 +26,7 @@ export const createPoll = async (req: Request, res: Response): Promise<void> => 
     }
 
     try {
-        const [result] = await pool.query(
+        const [result] = await dataSource.query(
             'INSERT INTO polls (title, description, poll_type_id, user_id) VALUES (?, ?, ?, ?)',
             [title, description, poll_type_id, user_id]
         );
@@ -35,7 +36,7 @@ export const createPoll = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
-export const votePoll = async (req: Request, res: Response): Promise<void> => {
+export const votePoll = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
     const { poll_id, option_id, user_id } = req.body;
 
     if (!poll_id || !option_id || !user_id) {
@@ -44,7 +45,7 @@ export const votePoll = async (req: Request, res: Response): Promise<void> => {
     }
 
     try {
-        const [poll] = await pool.query(
+        const [poll] = await dataSource.query(
             'SELECT expiration_date FROM polls WHERE id = ?',
             [poll_id]
         );
@@ -62,7 +63,7 @@ export const votePoll = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const [result] = await pool.query(
+        const [result] = await dataSource.query(
             'INSERT INTO votes (poll_id, option_id, user_id) VALUES (?, ?, ?)',
             [poll_id, option_id, user_id]
         );
@@ -72,11 +73,11 @@ export const votePoll = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const getPollResults = async (req: Request, res: Response): Promise<void> => {
+export const getPollResults = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
     const { poll_id } = req.params;
 
     try {
-        const [rows] = await pool.query(
+        const [rows] = await dataSource.query(
             'SELECT option_id, COUNT(*) as votes FROM votes WHERE poll_id = ? GROUP BY option_id',
             [poll_id]
         );
@@ -86,7 +87,7 @@ export const getPollResults = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const deletePoll = async (req: Request, res: Response): Promise<void> => {
+export const deletePoll = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
     const { poll_id } = req.params;
     const { user_id } = req.body;
 
@@ -99,7 +100,7 @@ export const deletePoll = async (req: Request, res: Response): Promise<void> => 
         const pollIdNum = Number(poll_id);
         const userIdNum = Number(user_id);
 
-        const [pollRows] = await pool.query(
+        const [pollRows] = await dataSource.query(
             'SELECT user_id FROM polls WHERE id = ?',
             [pollIdNum]
         );
@@ -117,7 +118,7 @@ export const deletePoll = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        await pool.query(
+        await dataSource.query(
             'DELETE FROM polls WHERE id = ?',
             [pollIdNum]
         );
@@ -129,7 +130,7 @@ export const deletePoll = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
-export const setPollExpiration = async (req: Request, res: Response): Promise<void> => {
+export const setPollExpiration = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
     const { poll_id } = req.params;
     const { user_id, expiration_date } = req.body;
 
@@ -142,7 +143,7 @@ export const setPollExpiration = async (req: Request, res: Response): Promise<vo
         const pollIdNum = Number(poll_id);
         const userIdNum = Number(user_id);
 
-        const [result] = await pool.query(
+        const [result] = await dataSource.query(
             'SELECT user_id FROM polls WHERE id = ?',
             [pollIdNum]
         ) as any[];
@@ -157,7 +158,7 @@ export const setPollExpiration = async (req: Request, res: Response): Promise<vo
             return;
         }
 
-        await pool.query(
+        await dataSource.query(
             'UPDATE polls SET expiration_date = ? WHERE id = ?',
             [expiration_date, pollIdNum]
         );

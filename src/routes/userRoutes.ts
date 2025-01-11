@@ -1,13 +1,18 @@
-// src/routes/userRoutes.ts
 import { Router } from 'express';
 import { getUsers, createUser, getUserById, updateUser, deleteUser } from '../controllers/userController';
+import { DataSource } from 'typeorm';
 
-const router = Router();
 
-router.get('/users', getUsers);
-router.post('/users', createUser);
-router.get('/users/:id', getUserById);
-router.put('/users/:id', updateUser);
-router.delete('/users/:id', deleteUser);
+const createUserRoutes = (dataSource: DataSource) => {
+    const router = Router();
 
-export default router;
+    router.get('/users', getUsers(dataSource));
+    router.post('/users', createUser(dataSource));
+    router.get('/users/:id', getUserById(dataSource));
+    router.put('/users/:id', updateUser(dataSource));
+    router.delete('/users/:id', deleteUser(dataSource));
+
+    return router;
+};
+
+export default createUserRoutes;

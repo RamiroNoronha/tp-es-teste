@@ -1,13 +1,17 @@
-import { createPool } from 'mysql2/promise';
+import { DataSource, DataSourceOptions } from 'typeorm';
 
-const dbConfig = {
+const dbConfig: DataSourceOptions = {
+    type: 'mysql',
     host: 'localhost',
-    user: 'root',
+    port: 3306,
+    username: 'root',
     password: 'root',
     database: 'book_poll_platform',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+    synchronize: false, // Defina como true se quiser sincronizar automaticamente o esquema do banco de dados
+    logging: false,
+    entities: ['src/entities/*.ts'],
+    migrations: ['src/migrations/*.ts'],
+    subscribers: ['src/subscribers/*.ts'],
 };
 
-export const pool = createPool(dbConfig);
+export const dataSource = new DataSource(dbConfig);

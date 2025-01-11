@@ -2,20 +2,20 @@ import request from 'supertest';
 import express from 'express';
 import bodyParser from 'body-parser';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { pool } from '../../config/dbConfig';
+import { dataSource } from '../../config/dbConfig';
 import pollRoutes from '../../routes/pollRoutes';
 
 
 const app = express();
 app.use(bodyParser.json());
 
-app.use('/api', pollRoutes);
+app.use('/api', pollRoutes(dataSource));
 
 jest.mock('../../config/dbConfig', () => {
-    const mockPool = {
+    const mockDataSource = {
         query: jest.fn(),
     };
-    return { pool: mockPool };
+    return { dataSource: mockDataSource };
 });
 
 
@@ -27,9 +27,9 @@ describe('Poll Controller', () => {
         jest.resetAllMocks();
     });
 
-    it('should get poll results successfully', async () => {
+    it('should get all poll results successfully', async () => {
         const mockPolls = [mockPoll];
-        (pool.query as jest.Mock).mockReturnValue([mockPolls]);
+        (dataSource.query as jest.Mock).mockReturnValue([mockPolls]);
 
         const response = await request(app).get('/api/polls');
 
@@ -38,7 +38,7 @@ describe('Poll Controller', () => {
     });
 
     it('should return 500 when there is a database error while getting polls', async () => {
-        (pool.query as jest.Mock).mockRejectedValueOnce({
+        (dataSource.query as jest.Mock).mockRejectedValueOnce({
             message: 'Database error',
         } as never);
 
@@ -50,7 +50,7 @@ describe('Poll Controller', () => {
 
     it('should create a poll successfully', async () => {
         const mockResult = { insertId: 2 };
-        (pool.query as jest.Mock).mockReturnValue([mockResult]);
+        (dataSource.query as jest.Mock).mockReturnValue([mockResult]);
 
         const response = await request(app).post('/api/polls').send({
             ...mockPoll,
@@ -76,7 +76,7 @@ describe('Poll Controller', () => {
 
         const mockDate = { expiration_date: null };
         const mockResult = { insertId: 1 };
-        (pool.query as jest.Mock).mockReturnValueOnce([mockDate])
+        (dataSource.query as jest.Mock).mockReturnValueOnce([mockDate])
             .mockReturnValueOnce([mockResult]);
 
         const response = await request(app).post('/api/polls/vote').send(
@@ -95,7 +95,7 @@ describe('Poll Controller', () => {
 
         const mockDate = { expiration_date: yesterdayString };
         const mockResult = { insertId: 1 };
-        (pool.query as jest.Mock).mockReturnValueOnce([mockDate])
+        (dataSource.query as jest.Mock).mockReturnValueOnce([mockDate])
             .mockReturnValueOnce([mockResult]);
 
         const response = await request(app).post('/api/polls/vote').send(
@@ -120,7 +120,7 @@ describe('Poll Controller', () => {
 
     it('should get poll results successfully', async () => {
         const mockResult = { option_id: 1, count: 10 };
-        (pool.query as jest.Mock).mockReturnValue([mockResult]);
+        (dataSource.query as jest.Mock).mockReturnValue([mockResult]);
 
         const response = await request(app).get("/api/polls/${pollId}/results");
 
@@ -130,7 +130,7 @@ describe('Poll Controller', () => {
 
     it('should return 404 when trying to vote on a non-existent poll', async () => {
 
-        (pool.query as jest.Mock).mockReturnValueOnce([]);
+        (dataSource.query as jest.Mock).mockReturnValueOnce([]);
 
         const response = await request(app).post('/api/polls/vote').send(
             mockVotePoll
@@ -151,7 +151,7 @@ describe('Poll Controller', () => {
     });
 
     it('should return 404 when trying to delete a non-existent poll', async () => {
-        (pool.query as jest.Mock)
+        (dataSource.query as jest.Mock)
             .mockReturnValueOnce([[]]);
 
         const deleteResponse = await request(app)
@@ -167,7 +167,7 @@ describe('Poll Controller', () => {
             { id: 1, title: 'Poll 1', description: 'Description 1', poll_type_id: 1, user_id: 1 },
         ];
 
-        (pool.query as jest.Mock)
+        (dataSource.query as jest.Mock)
             .mockReturnValueOnce([mockPolls])
             .mockReturnValueOnce([{ user_id: 1 }]);
 
@@ -184,7 +184,7 @@ describe('Poll Controller', () => {
             { id: 1, title: 'Poll 1', description: 'Description 1', poll_type_id: 1, user_id: 1 },
         ];
 
-        (pool.query as jest.Mock)
+        (dataSource.query as jest.Mock)
             .mockReturnValueOnce([mockPolls])
             .mockReturnValueOnce([{ user_id: 1 }]);
 
@@ -218,7 +218,7 @@ describe('Poll Controller', () => {
         const mockBody = { user_id: 1, expiration_date: yesterdayString };
         const mockResult = { user_id: 2 };
 
-        (pool.query as jest.Mock).mockReturnValue([mockResult]);
+        (dataSource.query as jest.Mock).mockReturnValue([mockResult]);
 
         const response = await request(app).post("/api/polls/expire/${pollId}").send(mockBody);
 
@@ -234,7 +234,7 @@ describe('Poll Controller', () => {
 
         const mockBody = { user_id: 1, expiration_date: yesterdayString };
 
-        (pool.query as jest.Mock).mockReturnValue([]);
+        (dataSource.query as jest.Mock).mockReturnValue([]);
 
         const response = await request(app).post("/api/polls/expire/${pollId}").send(mockBody);
 
@@ -251,7 +251,7 @@ describe('Poll Controller', () => {
         const mockBody = { user_id: 1, expiration_date: yesterdayString };
         const mockResult = { user_id: 1 };
 
-        (pool.query as jest.Mock)
+        (dataSource.query as jest.Mock)
             .mockReturnValueOnce([mockResult])
             .mockReturnValueOnce([]);
 

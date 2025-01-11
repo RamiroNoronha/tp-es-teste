@@ -4,6 +4,7 @@ import cors from 'cors';
 import pollRoutes from './routes/pollRoutes';
 import userRoutes from './routes/userRoutes';
 import commentRoutes from './routes/commentRoutes';
+import { dataSource } from './config/dbConfig';
 
 const app = express();
 const port = 3000;
@@ -20,11 +21,11 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
-app.use('/api', pollRoutes);
+app.use('/api', pollRoutes(dataSource));
 
-app.use('/api', userRoutes);
+app.use('/api', userRoutes(dataSource));
 
-app.use('/api', commentRoutes);
+app.use('/api', commentRoutes(dataSource));
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
