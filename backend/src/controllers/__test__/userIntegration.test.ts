@@ -1,4 +1,4 @@
-import { formatDateForComparison } from './../../utils/formatString';
+import { formatDateForComparison } from '../../utils/formatString';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
 import bodyParser from 'body-parser';
