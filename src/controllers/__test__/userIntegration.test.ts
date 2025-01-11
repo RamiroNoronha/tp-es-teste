@@ -7,10 +7,12 @@ import userRoutes from '../../routes/userRoutes';
 import { beforeAll, afterAll, describe, expect, it, jest } from '@jest/globals';
 import { Users } from '../../entities/user';
 import testConfig from '../../config/dbConfigTest';
+import usersTable from './__slug__/usersTable';
+
 const app = express();
 app.use(bodyParser.json());
 
-describe('Teste de Integração - Usuários', () => {
+describe('Integration tests - Users', () => {
     let dataSource: DataSource;
     beforeAll(async () => {
         dataSource = new DataSource(testConfig);
@@ -22,27 +24,43 @@ describe('Teste de Integração - Usuários', () => {
         await dataSource.destroy();
     });
 
-    it('Deve criar e listar usuários', async () => {
-        // Inserir um usuário no banco
+    it('Should get all the users correctly', async () => {
         const userRepository = dataSource.getRepository(Users);
-        const user = userRepository.create({
-            id: 1, // Opcional; SQLite gerará automaticamente se omitido
-            username: 'johndoe',
-            password: 'securepassword',
-            createdAt: new Date(),
-        });
-        await userRepository.save(user);
-
+        for (const user of usersTable) {
+            const newUser = userRepository.create(user);
+            await userRepository.save(newUser);
+        }
 
         const response = await request(app).get('/api/users');
+
         expect(response.status).toBe(200);
         expect(response.body).toEqual(
-            expect.objectContaining({
-                id: user.id,
-                username: user.username,
-                password: user.password,
-                createdAt: formatDateForComparison(user.createdAt),
-            }),
+            expect.arrayContaining(
+                usersTable.map(user => expect.objectContaining({
+                    id: user.id,
+                    username: user.username,
+                    password: user.password,
+                    createdAt: formatDateForComparison(user.createdAt),
+                }))
+            )
         );
+    });
+
+    it('Should insert the new user correctly', async () => {
+        const userRepository = dataSource.getRepository(Users);
+        const firtsTwoUsers = usersTable.slice(0, 2);
+        for (const user of firtsTwoUsers) {
+            const newUser = userRepository.create(user);
+            await userRepository.save(newUser);
+        }
+
+        const newUserToAdd = {
+            username: 'user3',
+            password: 'password3',
+        }
+
+        const response = await request(app).post('/api/users').send(newUserToAdd);
+
+        expect(response.status).toBe(201);
     });
 });
