@@ -20,7 +20,7 @@ export class Poll {
     @CreateDateColumn()
     createdAt: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ type: 'datetime', nullable: true })
     closedAt: Date | null;
 
     constructor(
