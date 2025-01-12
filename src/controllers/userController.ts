@@ -54,11 +54,26 @@ export const updateUser = (dataSource: DataSource) => async (req: Request, res: 
     }
 
     try {
-        const [result] = await dataSource.query(
-            'UPDATE users SET username = ?, password = ? WHERE id = ?',
-            [username, password, id]
-        );
-        if ((result as any).affectedRows === 0) {
+
+        const fieldsToUpdate: string[] = [];
+        const values: any[] = [];
+
+        if (username) {
+            fieldsToUpdate.push('username = ?');
+            values.push(username);
+        }
+
+        if (password) {
+            fieldsToUpdate.push('password = ?');
+            values.push(password);
+        }
+
+        values.push(id);
+
+        const query = `UPDATE users SET ${fieldsToUpdate.join(', ')} WHERE id = ?`;
+        const result = await dataSource.query(query, values);
+
+        if (result?.affectedRows === 0) {
             res.status(404).json({ error: 'User not found' });
         } else {
             res.status(200).json({ message: 'User updated successfully' });
@@ -71,8 +86,8 @@ export const updateUser = (dataSource: DataSource) => async (req: Request, res: 
 export const deleteUser = (dataSource: DataSource) => async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const [result] = await dataSource.query('DELETE FROM users WHERE id = ?', [id]);
-        if ((result as any).affectedRows === 0) {
+        const result = await dataSource.query('DELETE FROM users WHERE id = ?', [id]);
+        if (result?.affectedRows === 0) {
             res.status(404).json({ error: 'User not found' });
         } else {
             res.status(200).json({ message: 'User deleted successfully' });

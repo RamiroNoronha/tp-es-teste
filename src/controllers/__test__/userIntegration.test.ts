@@ -8,6 +8,7 @@ import { beforeAll, afterAll, describe, expect, it, jest } from '@jest/globals';
 import { Users } from '../../entities/user';
 import testConfig from '../../config/dbConfigTest';
 import usersTable from './__slug__/usersTable';
+import exp from 'constants';
 
 const app = express();
 app.use(bodyParser.json());
@@ -72,5 +73,28 @@ describe('Integration tests - Users', () => {
                 createdAt: formatDateForComparison(selectUser.createdAt),
             }
         );
+    });
+
+    it('Should update the correct user by id', async () => {
+        const response = await request(app).put('/api/users/2').send({ username: 'newName', });
+
+        expect(response.status).toBe(200);
+
+        const userRepository = dataSource.getRepository(Users);
+        const allUsers = await userRepository.find();
+
+        expect(allUsers[1].id).toBe(2);
+        expect(allUsers[1].username).toBe('newName');
+    });
+
+    it('Should delete the correct user by id', async () => {
+        const response = await request(app).delete('/api/users/3');
+
+        expect(response.status).toBe(200);
+
+        const userRepository = dataSource.getRepository(Users);
+        const allUsers = await userRepository.find();
+
+        expect(allUsers.find((user) => user.id === 3)).toBe(undefined);
     });
 });
