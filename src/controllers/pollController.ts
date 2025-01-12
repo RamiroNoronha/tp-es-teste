@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 
 interface Poll {
     user_id: number;
-    expiration_date: Date;
+    closed_at: Date;
 }
 
 export const getPolls = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
@@ -44,8 +44,8 @@ export const votePoll = (dataSource: DataSource) => async (req: Request, res: Re
     }
 
     try {
-        const [poll] = await dataSource.query(
-            'SELECT expiration_date FROM polls WHERE id = ?',
+        const poll = await dataSource.query(
+            'SELECT closed_at FROM polls WHERE id = ?',
             [poll_id]
         );
 
@@ -55,14 +55,15 @@ export const votePoll = (dataSource: DataSource) => async (req: Request, res: Re
         }
 
 
-        const expiration = (poll as any).expiration_date;
+        const expiration = (poll as any).closed_at;
         const currentDate = new Date();
+
         if (expiration && new Date(expiration) < currentDate) {
             res.status(400).json({ error: 'Poll has expired' });
             return;
         }
 
-        const [result] = await dataSource.query(
+        const result = await dataSource.query(
             'INSERT INTO votes (poll_id, option_id, user_id) VALUES (?, ?, ?)',
             [poll_id, option_id, user_id]
         );
@@ -76,8 +77,8 @@ export const getPollResults = (dataSource: DataSource) => async (req: Request, r
     const { poll_id } = req.params;
 
     try {
-        const [rows] = await dataSource.query(
-            'SELECT option_id, COUNT(*) as votes FROM votes WHERE poll_id = ? GROUP BY option_id',
+        const rows = await dataSource.query(
+            'SELECT option_id, COUNT(option_id) as votes FROM votes WHERE poll_id = ? GROUP BY option_id',
             [poll_id]
         );
         res.status(200).json(rows);
@@ -99,7 +100,7 @@ export const deletePoll = (dataSource: DataSource) => async (req: Request, res: 
         const pollIdNum = Number(poll_id);
         const user_idNum = Number(user_id);
 
-        const [pollRows] = await dataSource.query(
+        const pollRows = await dataSource.query(
             'SELECT user_id FROM polls WHERE id = ?',
             [pollIdNum]
         );
@@ -131,10 +132,10 @@ export const deletePoll = (dataSource: DataSource) => async (req: Request, res: 
 
 export const setPollExpiration = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
     const { poll_id } = req.params;
-    const { user_id, expiration_date } = req.body;
+    const { user_id, closed_at } = req.body;
 
     try {
-        if (!poll_id || !user_id || !expiration_date) {
+        if (!poll_id || !user_id || !closed_at) {
             res.status(400).json({ message: 'Poll ID, User ID, and Expiration Date are required' });
             return;
         }
@@ -142,7 +143,7 @@ export const setPollExpiration = (dataSource: DataSource) => async (req: Request
         const pollIdNum = Number(poll_id);
         const user_idNum = Number(user_id);
 
-        const [result] = await dataSource.query(
+        const result = await dataSource.query(
             'SELECT user_id FROM polls WHERE id = ?',
             [pollIdNum]
         ) as any[];
@@ -152,14 +153,14 @@ export const setPollExpiration = (dataSource: DataSource) => async (req: Request
             return;
         }
 
-        if (result.user_id !== user_idNum) {
+        if (result[0].user_id !== user_idNum) {
             res.status(403).json({ message: 'You are not authorized to update this poll' });
             return;
         }
 
         await dataSource.query(
-            'UPDATE polls SET expiration_date = ? WHERE id = ?',
-            [expiration_date, pollIdNum]
+            'UPDATE polls SET closed_at = ? WHERE id = ?',
+            [closed_at, pollIdNum]
         );
 
         res.status(200).json({ message: 'Poll expiration date set successfully' });
@@ -182,7 +183,7 @@ export const setPollOptions = (dataSource: DataSource) => async (req: Request, r
         const user_idNum = Number(user_id);
 
         const pollRows = await dataSource.query(
-            'SELECT user_id, expiration_date FROM polls WHERE id = ?',
+            'SELECT user_id, closed_at FROM polls WHERE id = ?',
             [pollIdNum]
         );
 
@@ -198,7 +199,7 @@ export const setPollOptions = (dataSource: DataSource) => async (req: Request, r
         }
 
         const currentDate = new Date();
-        if (poll.expiration_date && new Date(poll.expiration_date) < currentDate) {
+        if (poll.closed_at && new Date(poll.closed_at) < currentDate) {
             res.status(400).json({ message: 'Poll has expired' });
             return;
         }
