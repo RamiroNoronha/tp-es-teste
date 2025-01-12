@@ -44,18 +44,20 @@ export const votePoll = (dataSource: DataSource) => async (req: Request, res: Re
     }
 
     try {
-        const poll = await dataSource.query(
+        const pollRows = await dataSource.query(
             'SELECT closed_at FROM polls WHERE id = ?',
             [poll_id]
         );
 
-        if (!poll) {
+        console.log(pollRows)
+
+        if (!pollRows.length) {
             res.status(404).json({ error: 'Poll not found' });
             return;
         }
 
-
-        const expiration = (poll as any).closed_at;
+        const poll = pollRows[0] as Poll;
+        const expiration = poll.closed_at;
         const currentDate = new Date();
 
         if (expiration && new Date(expiration) < currentDate) {
@@ -146,14 +148,14 @@ export const setPollExpiration = (dataSource: DataSource) => async (req: Request
         const result = await dataSource.query(
             'SELECT user_id FROM polls WHERE id = ?',
             [pollIdNum]
-        ) as any[];
+        ) as Poll;
 
         if (!result) {
             res.status(404).json({ message: 'Poll not found' });
             return;
         }
 
-        if (result[0].user_id !== user_idNum) {
+        if (result.user_id !== user_idNum) {
             res.status(403).json({ message: 'You are not authorized to update this poll' });
             return;
         }
@@ -187,12 +189,14 @@ export const setPollOptions = (dataSource: DataSource) => async (req: Request, r
             [pollIdNum]
         );
 
-        if (!pollRows || pollRows.length === 0) {
+
+        if (!pollRows.length) {
             res.status(404).json({ message: 'Poll not found' });
             return;
         }
 
         const poll = pollRows[0] as Poll;
+
         if (poll.user_id !== user_idNum) {
             res.status(403).json({ message: 'You are not authorized to set options for this poll' });
             return;

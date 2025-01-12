@@ -76,8 +76,8 @@ describe('Poll Controller', () => {
 
         const mockDate = { expiration_date: null };
         const mockResult = { insertId: 1 };
-        (dataSource.query as jest.Mock).mockReturnValueOnce(mockDate)
-            .mockReturnValueOnce(mockResult);
+        (dataSource.query as jest.Mock).mockReturnValueOnce([mockDate])
+            .mockReturnValueOnce([mockResult]);
 
         const response = await request(app).post('/api/polls/vote').send(
             mockVotePoll
@@ -92,10 +92,10 @@ describe('Poll Controller', () => {
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayString = yesterday.toISOString();
 
-        const mockDate = { expiration_date: yesterdayString };
+        const mockDate = { closed_at: yesterdayString };
         const mockResult = { insertId: 1 };
-        (dataSource.query as jest.Mock).mockReturnValueOnce(mockDate)
-            .mockReturnValueOnce(mockResult);
+        (dataSource.query as jest.Mock).mockReturnValueOnce([mockDate])
+            .mockReturnValueOnce([mockResult]);
 
         const response = await request(app).post('/api/polls/vote').send(
             mockVotePoll
@@ -129,7 +129,7 @@ describe('Poll Controller', () => {
 
     it('should return 404 when trying to vote on a non-existent poll', async () => {
 
-        (dataSource.query as jest.Mock).mockReturnValueOnce([[]]);
+        (dataSource.query as jest.Mock).mockReturnValueOnce([]);
 
         const response = await request(app).post('/api/polls/vote').send(
             mockVotePoll
@@ -214,7 +214,7 @@ describe('Poll Controller', () => {
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayString = yesterday.toISOString();
 
-        const mockBody = { user_id: 1, expiration_date: yesterdayString };
+        const mockBody = { user_id: 1, closed_at: yesterdayString };
         const mockResult = { user_id: 2 };
 
         (dataSource.query as jest.Mock).mockReturnValue(mockResult);
@@ -231,9 +231,9 @@ describe('Poll Controller', () => {
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayString = yesterday.toISOString();
 
-        const mockBody = { user_id: 1, expiration_date: yesterdayString };
+        const mockBody = { user_id: 1, closed_at: yesterdayString };
 
-        (dataSource.query as jest.Mock).mockReturnValue([]);
+        (dataSource.query as jest.Mock).mockReturnValue(undefined);
 
         const response = await request(app).post("/api/polls/expire/${pollId}").send(mockBody);
 
@@ -247,12 +247,12 @@ describe('Poll Controller', () => {
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayString = yesterday.toISOString();
 
-        const mockBody = { user_id: 1, expiration_date: yesterdayString };
+        const mockBody = { user_id: 1, closed_at: yesterdayString };
         const mockResult = { user_id: 1 };
 
         (dataSource.query as jest.Mock)
             .mockReturnValueOnce(mockResult)
-            .mockReturnValueOnce([]);
+            .mockReturnValueOnce(undefined);
 
         const response = await request(app).post("/api/polls/expire/${pollId}").send(mockBody);
 
@@ -261,11 +261,11 @@ describe('Poll Controller', () => {
     });
 
     it('should set poll options successfully', async () => {
-        const mockPoll = { id: 1, user_id: 1, expiration_date: null };
+        const mockPoll = { id: 1, user_id: 1, closed_at: null };
         const mockOptions = ['Option 1', 'Option 2'];
 
         (dataSource.query as jest.Mock)
-            .mockReturnValueOnce(mockPoll)
+            .mockReturnValueOnce([mockPoll])
             .mockReturnValueOnce([])
             .mockReturnValueOnce([])
             .mockReturnValueOnce([]);
@@ -299,7 +299,7 @@ describe('Poll Controller', () => {
         const mockPoll = { id: 1, user_id: 2, expiration_date: null };
         const mockOptions = ['Option 1', 'Option 2'];
 
-        (dataSource.query as jest.Mock).mockReturnValueOnce(mockPoll);
+        (dataSource.query as jest.Mock).mockReturnValueOnce([mockPoll]);
 
         const response = await request(app).post('/api/polls/1/options').send({
             poll_id: 1,
@@ -314,10 +314,10 @@ describe('Poll Controller', () => {
     it('should return 400 when trying to set options for an expired poll', async () => {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const mockPoll = { id: 1, user_id: 1, expiration_date: yesterday.toISOString() };
+        const mockPoll = { id: 1, user_id: 1, closed_at: yesterday.toISOString() };
         const mockOptions = ['Option 1', 'Option 2'];
 
-        (dataSource.query as jest.Mock).mockReturnValueOnce(mockPoll);
+        (dataSource.query as jest.Mock).mockReturnValueOnce([mockPoll]);
 
         const response = await request(app).post('/api/polls/1/options').send({
             poll_id: 1,
