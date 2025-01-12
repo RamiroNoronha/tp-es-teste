@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { dataSource } from '../config/dbConfig';
 import { DataSource } from 'typeorm';
 
 export const addComment = (dataSource: DataSource) => async (req: Request, res: Response) => {

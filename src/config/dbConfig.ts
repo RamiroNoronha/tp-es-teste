@@ -7,7 +7,7 @@ const dbConfig: DataSourceOptions = {
     username: 'root',
     password: 'root',
     database: 'book_poll_platform',
-    synchronize: true, // Defina como true se quiser sincronizar automaticamente o esquema do banco de dados
+    synchronize: true,
     logging: false,
 };
 

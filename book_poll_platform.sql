@@ -54,10 +54,6 @@ create table comments(
     foreign key (user_id) references users(id)
 );
 
-INSERT INTO poll_types (type_name) VALUES ('multiple_choice'), ('single_choice'), ('open_response');
-
-insert into users (username, password) values ('teste1', 'teste1'), ('teste2', 'teste2');
-select * from users;
 
 
 

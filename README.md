@@ -22,3 +22,4 @@ O VOX POLLPULI é um sistema de enquetes que permite aos usuários criar, votar 
 - **Jest**: Framework de testes utilizado para garantir a qualidade e a confiabilidade do código, escolhido por sua facilidade de uso e integração com TypeScript.
 - **Supertest**: Biblioteca utilizada para testar APIs HTTP, escolhida por sua compatibilidade com Jest e facilidade de uso.
 - **Docker**: Utilizado para containerização da aplicação, facilitando o desenvolvimento, teste e implantação em diferentes ambientes.
+- **act**: Utilizado para testar os workflows do github antes de subir as alterações dele.
