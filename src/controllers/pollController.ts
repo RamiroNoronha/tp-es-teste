@@ -167,3 +167,82 @@ export const setPollExpiration = (dataSource: DataSource) => async (req: Request
         res.status(500).json({ error: (error as Error).message });
     }
 };
+
+export const setPollOptions = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
+    const { poll_id } = req.params;
+    const { user_id, options } = req.body;
+
+    if (!poll_id || !user_id || !options || !Array.isArray(options) || options.length === 0) {
+        res.status(400).json({ message: 'Poll ID, User ID, and options are required' });
+        return;
+    }
+
+    try {
+        const pollIdNum = Number(poll_id);
+        const user_idNum = Number(user_id);
+
+        const pollRows = await dataSource.query(
+            'SELECT user_id, expiration_date FROM polls WHERE id = ?',
+            [pollIdNum]
+        );
+
+        if (!pollRows || pollRows.length === 0) {
+            res.status(404).json({ message: 'Poll not found' });
+            return;
+        }
+
+        const poll = pollRows[0] as Poll;
+        if (poll.user_id !== user_idNum) {
+            res.status(403).json({ message: 'You are not authorized to set options for this poll' });
+            return;
+        }
+
+        const currentDate = new Date();
+        if (poll.expiration_date && new Date(poll.expiration_date) < currentDate) {
+            res.status(400).json({ message: 'Poll has expired' });
+            return;
+        }
+
+        await dataSource.query(
+            'DELETE FROM poll_options WHERE poll_id = ?',
+            [pollIdNum]
+        );
+
+        const insertQueries = options.map(option => {
+            return dataSource.query(
+                'INSERT INTO poll_options (poll_id, option_text) VALUES (?, ?)',
+                [pollIdNum, option]
+            );
+        });
+
+        await Promise.all(insertQueries);
+
+        res.status(200).json({ message: 'Poll options set successfully' });
+    } catch (error) {
+        console.error('Error setting poll options:', error);
+        res.status(500).json({ error: (error as Error).message });
+    }
+};
+
+export const getPollOptions = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
+    const { poll_id } = req.params;
+
+    try {
+        const pollIdNum = Number(poll_id);
+
+        const options = await dataSource.query(
+            'SELECT * FROM poll_options WHERE poll_id = ?',
+            [pollIdNum]
+        );
+
+        if (!options || options.length === 0) {
+            res.status(404).json({ message: 'No options found for this poll' });
+            return;
+        }
+
+        res.status(200).json(options);
+    } catch (error) {
+        console.error('Error getting poll options:', error);
+        res.status(500).json({ error: (error as Error).message });
+    }
+};

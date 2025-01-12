@@ -260,4 +260,108 @@ describe('Poll Controller', () => {
         expect(response.status).toBe(200);
         expect(response.body).toEqual({ message: 'Poll expiration date set successfully' });
     });
+
+    it('should set poll options successfully', async () => {
+        const mockPoll = { id: 1, user_id: 1, expiration_date: null };
+        const mockOptions = ['Option 1', 'Option 2'];
+
+        (dataSource.query as jest.Mock)
+            .mockReturnValueOnce([mockPoll])
+            .mockReturnValueOnce([])
+            .mockReturnValueOnce([])
+            .mockReturnValueOnce([]);
+
+        const response = await request(app).post('/api/polls/1/options').send({
+            poll_id: 1,
+            user_id: 1,
+            options: mockOptions
+        });
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({ message: 'Poll options set successfully' });
+    });
+
+    it('should return 404 when trying to set options for a non-existent poll', async () => {
+        const mockOptions = ['Option 1', 'Option 2'];
+
+        (dataSource.query as jest.Mock).mockReturnValueOnce([]);
+
+        const response = await request(app).post('/api/polls/1/options').send({
+            poll_id: 1,
+            user_id: 1,
+            options: mockOptions
+        });
+
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({ message: 'Poll not found' });
+    });
+
+    it('should return 403 when trying to set options for a poll owned by another user', async () => {
+        const mockPoll = { id: 1, user_id: 2, expiration_date: null };
+        const mockOptions = ['Option 1', 'Option 2'];
+
+        (dataSource.query as jest.Mock).mockReturnValueOnce([mockPoll]);
+
+        const response = await request(app).post('/api/polls/1/options').send({
+            poll_id: 1,
+            user_id: 1,
+            options: mockOptions
+        });
+
+        expect(response.status).toBe(403);
+        expect(response.body).toEqual({ message: 'You are not authorized to set options for this poll' });
+    });
+
+    it('should return 400 when trying to set options for an expired poll', async () => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const mockPoll = { id: 1, user_id: 1, expiration_date: yesterday.toISOString() };
+        const mockOptions = ['Option 1', 'Option 2'];
+
+        (dataSource.query as jest.Mock).mockReturnValueOnce([mockPoll]);
+
+        const response = await request(app).post('/api/polls/1/options').send({
+            poll_id: 1,
+            user_id: 1,
+            options: mockOptions
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ message: 'Poll has expired' });
+    });
+
+    it('should get poll options successfully', async () => {
+        const mockOptions = [
+            { id: 1, poll_id: 1, option_text: 'Option 1' },
+            { id: 2, poll_id: 1, option_text: 'Option 2' }
+        ];
+
+        (dataSource.query as jest.Mock).mockReturnValueOnce(mockOptions);
+
+        const response = await request(app).get('/api/polls/1/options');
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual(mockOptions);
+    });
+
+    it('should return 404 when no options are found for the poll', async () => {
+        (dataSource.query as jest.Mock).mockReturnValueOnce([]);
+
+        const response = await request(app).get('/api/polls/1/options');
+
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({ message: 'No options found for this poll' });
+    });
+
+    it('should return 500 when there is a database error while getting poll options', async () => {
+        (dataSource.query as jest.Mock).mockRejectedValueOnce({
+            message: 'Database error',
+        } as never);
+
+        const response = await request(app).get('/api/polls/1/options');
+
+        expect(response.status).toBe(500);
+        expect(response.body).toEqual({ error: 'Database error' });
+    });
+
 });
