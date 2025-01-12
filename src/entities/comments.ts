@@ -18,13 +18,13 @@ export class Comments {
     content: string;
 
     @CreateDateColumn()
-    createdAt: Date;
+    created_at: Date;
 
-    constructor(id: number, poll: Polls, user: Users, content: string, createdAt: Date) {
+    constructor(id: number, poll: Polls, user: Users, content: string, created_at: Date) {
         this.id = id;
         this.poll = poll;
         this.user = user;
         this.content = content;
-        this.createdAt = createdAt;
+        this.created_at = created_at;
     }
 }

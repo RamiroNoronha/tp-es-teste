@@ -3,22 +3,22 @@ import { dataSource } from '../config/dbConfig';
 import { DataSource } from 'typeorm';
 
 export const addComment = (dataSource: DataSource) => async (req: Request, res: Response) => {
-  const { pollId, userId, content } = req.body;
+  const { pollId, user_id, content } = req.body;
   try {
-    if (!pollId || !userId || !content) {
+    if (!pollId || !user_id || !content) {
       res.status(400).json({ error: 'Invalid request' });
       return;
     }
 
     const [results] = await dataSource.query(
       'INSERT INTO comments (poll_id, user_id, content) VALUES (?, ?, ?)',
-      [pollId, userId, content]
+      [pollId, user_id, content]
     );
 
     res.status(201).json({
       id: (results as any).insertId,
       pollId,
-      userId,
+      user_id,
       content,
     });
   } catch (error) {

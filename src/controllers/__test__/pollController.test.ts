@@ -29,7 +29,7 @@ describe('Poll Controller', () => {
 
     it('should get all poll results successfully', async () => {
         const mockPolls = [mockPoll];
-        (dataSource.query as jest.Mock).mockReturnValue([mockPolls]);
+        (dataSource.query as jest.Mock).mockReturnValue(mockPolls);
 
         const response = await request(app).get('/api/polls');
 
@@ -50,7 +50,7 @@ describe('Poll Controller', () => {
 
     it('should create a poll successfully', async () => {
         const mockResult = { insertId: 2 };
-        (dataSource.query as jest.Mock).mockReturnValue([mockResult]);
+        (dataSource.query as jest.Mock).mockReturnValue(mockResult);
 
         const response = await request(app).post('/api/polls').send({
             ...mockPoll,

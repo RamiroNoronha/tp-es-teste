@@ -29,14 +29,14 @@ describe('Comment Controller', () => {
 
     const response = await request(app)
       .post('/comments')
-      .send({ pollId: 1, userId: 1, content: 'Test comment' });
+      .send({ pollId: 1, user_id: 1, content: 'Test comment' });
 
     expect(response.status).toBe(201);
-    expect(response.body).toEqual({ id: 1, pollId: 1, userId: 1, content: 'Test comment' });
+    expect(response.body).toEqual({ id: 1, pollId: 1, user_id: 1, content: 'Test comment' });
   });
 
   it('should retrieve comments for a specific poll', async () => {
-    const mockComments = [{ id: 1, pollId: 1, userId: 1, content: 'Test comment', created_at: '2023-01-01T00:00:00.000Z' }];
+    const mockComments = [{ id: 1, pollId: 1, user_id: 1, content: 'Test comment', created_at: '2023-01-01T00:00:00.000Z' }];
     (dataSource.query as jest.Mock).mockReturnValue([mockComments]);
 
     const response = await request(app).get('/comments/1');
@@ -48,7 +48,7 @@ describe('Comment Controller', () => {
   it('should return 400 when comment content is null', async () => {
     const response = await request(app)
       .post('/comments')
-      .send({ pollId: 1, userId: 1, content: null });
+      .send({ pollId: 1, user_id: 1, content: null });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ error: 'Invalid request' });

@@ -8,7 +8,7 @@ interface Poll {
 
 export const getPolls = (dataSource: DataSource) => async (req: Request, res: Response): Promise<void> => {
     try {
-        const [rows] = await dataSource.query('SELECT * FROM polls');
+        const rows = await dataSource.query('SELECT * FROM polls');
         res.status(200).json(rows);
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });
@@ -24,12 +24,13 @@ export const createPoll = (dataSource: DataSource) => async (req: Request, res: 
     }
 
     try {
-        const [result] = await dataSource.query(
+        const result = await dataSource.query(
             'INSERT INTO polls (title, description, poll_type_id, user_id) VALUES (?, ?, ?, ?)',
             [title, description, poll_type_id, user_id]
         );
         res.status(201).json({ id: (result as any).insertId });
     } catch (error) {
+        console.error('Error creating poll:', error);
         res.status(500).json({ error: (error as Error).message });
     }
 };
@@ -96,7 +97,7 @@ export const deletePoll = (dataSource: DataSource) => async (req: Request, res: 
         }
 
         const pollIdNum = Number(poll_id);
-        const userIdNum = Number(user_id);
+        const user_idNum = Number(user_id);
 
         const [pollRows] = await dataSource.query(
             'SELECT user_id FROM polls WHERE id = ?',
@@ -111,7 +112,7 @@ export const deletePoll = (dataSource: DataSource) => async (req: Request, res: 
         }
 
         const poll = polls[0];
-        if (poll.user_id !== userIdNum) {
+        if (poll.user_id !== user_idNum) {
             res.status(403).json({ message: 'You are not authorized to delete this poll' });
             return;
         }
@@ -139,7 +140,7 @@ export const setPollExpiration = (dataSource: DataSource) => async (req: Request
         }
 
         const pollIdNum = Number(poll_id);
-        const userIdNum = Number(user_id);
+        const user_idNum = Number(user_id);
 
         const [result] = await dataSource.query(
             'SELECT user_id FROM polls WHERE id = ?',
@@ -151,7 +152,7 @@ export const setPollExpiration = (dataSource: DataSource) => async (req: Request
             return;
         }
 
-        if (result.user_id !== userIdNum) {
+        if (result.user_id !== user_idNum) {
             res.status(403).json({ message: 'You are not authorized to update this poll' });
             return;
         }

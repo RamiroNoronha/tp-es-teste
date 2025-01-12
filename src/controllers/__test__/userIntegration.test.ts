@@ -42,7 +42,7 @@ describe('Integration tests - Users', () => {
                     id: user.id,
                     username: user.username,
                     password: user.password,
-                    createdAt: formatDateForComparison(user.createdAt),
+                    created_at: formatDateForComparison(user.created_at),
                 }))
             )
         );
@@ -70,7 +70,7 @@ describe('Integration tests - Users', () => {
                 id: selectUser.id,
                 username: selectUser.username,
                 password: selectUser.password,
-                createdAt: formatDateForComparison(selectUser.createdAt),
+                created_at: formatDateForComparison(selectUser.created_at),
             }
         );
     });
