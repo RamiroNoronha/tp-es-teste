@@ -28,7 +28,8 @@ export const createPoll = (dataSource: DataSource) => async (req: Request, res: 
             'INSERT INTO polls (title, description, poll_type_id, user_id) VALUES (?, ?, ?, ?)',
             [title, description, poll_type_id, user_id]
         );
-        res.status(201).json({ id: (result as any).insertId });
+        const newId = result?.insertId ?? result;
+        res.status(201).json({ id: newId });
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });
     }

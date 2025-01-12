@@ -67,7 +67,7 @@ describe('Integration tests - Users', () => {
         await dataSource.destroy();
     });
 
-    it('Should inset a new comment correctly', async () => {
+    it('Should insert a new comment correctly', async () => {
         const response = await request(app).post('/api/comments').send({ pollId: 1, user_id: 1, content: "Comentário de teste" });
 
         expect(response.status).toBe(201);
