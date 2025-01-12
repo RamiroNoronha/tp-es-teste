@@ -14,7 +14,6 @@ export const addComment = (dataSource: DataSource) => async (req: Request, res: 
       'INSERT INTO comments (poll_id, user_id, content, created_at) VALUES (?, ?, ?, ?)',
       [pollId, user_id, content, new Date()]
     );
-    console.log(result);
     const newId = result?.insertId ?? result;
     res.status(201).json({
       id: newId,
