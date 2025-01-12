@@ -14,10 +14,17 @@ app.use(bodyParser.json());
 
 describe('Integration tests - Users', () => {
     let dataSource: DataSource;
+
     beforeAll(async () => {
         dataSource = new DataSource(testConfig);
         await dataSource.initialize();
         app.use('/api', userRoutes(dataSource));
+
+        const userRepository = dataSource.getRepository(Users);
+        for (const user of usersTable) {
+            const newUser = userRepository.create(user);
+            await userRepository.save(newUser);
+        }
     });
 
     afterAll(async () => {
@@ -25,12 +32,6 @@ describe('Integration tests - Users', () => {
     });
 
     it('Should get all the users correctly', async () => {
-        const userRepository = dataSource.getRepository(Users);
-        for (const user of usersTable) {
-            const newUser = userRepository.create(user);
-            await userRepository.save(newUser);
-        }
-
         const response = await request(app).get('/api/users');
 
         expect(response.status).toBe(200);
@@ -47,20 +48,29 @@ describe('Integration tests - Users', () => {
     });
 
     it('Should insert the new user correctly', async () => {
-        const userRepository = dataSource.getRepository(Users);
-        const firtsTwoUsers = usersTable.slice(0, 2);
-        for (const user of firtsTwoUsers) {
-            const newUser = userRepository.create(user);
-            await userRepository.save(newUser);
-        }
-
         const newUserToAdd = {
-            username: 'user3',
-            password: 'password3',
+            username: 'myNewUser',
+            password: 'passwordNewUser',
         }
 
         const response = await request(app).post('/api/users').send(newUserToAdd);
 
         expect(response.status).toBe(201);
+    });
+
+    it('Should get the correct user by id', async () => {
+        const selectUser = usersTable[0];
+
+        const response = await request(app).get('/api/users/1');
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual(
+            {
+                id: selectUser.id,
+                username: selectUser.username,
+                password: selectUser.password,
+                createdAt: formatDateForComparison(selectUser.createdAt),
+            }
+        );
     });
 });

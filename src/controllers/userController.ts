@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { DataSource } from 'typeorm';
+import { Users } from '../entities/user';
 
 export const getUsers = (dataSource: DataSource) => async (req: Request, res: Response) => {
     try {
@@ -32,8 +33,8 @@ export const createUser = (dataSource: DataSource) => async (req: Request, res: 
 export const getUserById = (dataSource: DataSource) => async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const [rows] = await dataSource.query<any[]>('SELECT * FROM users WHERE id = ?', [id]);
-        if ((rows as any).length === 0) {
+        const rows = await dataSource.query<Users[]>('SELECT * FROM users WHERE id = ?', [id]);
+        if (rows.length === 0) {
             res.status(404).json({ error: 'User not found' });
         } else {
             res.status(200).json(rows[0]);
