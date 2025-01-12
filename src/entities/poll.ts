@@ -1,7 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import { PollOptions } from './pollOption';
+import { Votes } from './vote';
 
 @Entity()
-export class Poll {
+export class Polls {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -12,32 +14,32 @@ export class Poll {
     description: string;
 
     @Column()
-    pollTypeId: number;
+    poll_type_id: number;
 
     @Column()
-    userId: number;
+    user_id: number;
 
     @CreateDateColumn()
-    createdAt: Date;
+    created_at: Date;
 
     @Column({ type: 'datetime', nullable: true })
-    closedAt: Date | null;
+    closed_at: Date | null;
 
     constructor(
         id: number,
         title: string,
         description: string,
-        pollTypeId: number,
-        userId: number,
-        createdAt: Date,
-        closedAt: Date | null
+        poll_type_id: number,
+        user_id: number,
+        created_at: Date,
+        closed_at: Date | null
     ) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.pollTypeId = pollTypeId;
-        this.userId = userId;
-        this.createdAt = createdAt;
-        this.closedAt = closedAt;
+        this.poll_type_id = poll_type_id;
+        this.user_id = user_id;
+        this.created_at = created_at;
+        this.closed_at = closed_at;
     }
 }

@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { DataSource } from 'typeorm';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-
+import { Users } from '../entities/user';
 
 export const getUsers = (dataSource: DataSource) => async (req: Request, res: Response) => {
     try {
@@ -35,8 +33,8 @@ export const createUser = (dataSource: DataSource) => async (req: Request, res: 
 export const getUserById = (dataSource: DataSource) => async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const [rows] = await dataSource.query<any[]>('SELECT * FROM users WHERE id = ?', [id]);
-        if ((rows as any).length === 0) {
+        const rows = await dataSource.query<Users[]>('SELECT * FROM users WHERE id = ?', [id]);
+        if (rows.length === 0) {
             res.status(404).json({ error: 'User not found' });
         } else {
             res.status(200).json(rows[0]);
@@ -56,11 +54,26 @@ export const updateUser = (dataSource: DataSource) => async (req: Request, res: 
     }
 
     try {
-        const [result] = await dataSource.query(
-            'UPDATE users SET username = ?, password = ? WHERE id = ?',
-            [username, password, id]
-        );
-        if ((result as any).affectedRows === 0) {
+
+        const fieldsToUpdate: string[] = [];
+        const values: any[] = [];
+
+        if (username) {
+            fieldsToUpdate.push('username = ?');
+            values.push(username);
+        }
+
+        if (password) {
+            fieldsToUpdate.push('password = ?');
+            values.push(password);
+        }
+
+        values.push(id);
+
+        const query = `UPDATE users SET ${fieldsToUpdate.join(', ')} WHERE id = ?`;
+        const result = await dataSource.query(query, values);
+
+        if (result?.affectedRows === 0) {
             res.status(404).json({ error: 'User not found' });
         } else {
             res.status(200).json({ message: 'User updated successfully' });
@@ -73,8 +86,8 @@ export const updateUser = (dataSource: DataSource) => async (req: Request, res: 
 export const deleteUser = (dataSource: DataSource) => async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const [result] = await dataSource.query('DELETE FROM users WHERE id = ?', [id]);
-        if ((result as any).affectedRows === 0) {
+        const result = await dataSource.query('DELETE FROM users WHERE id = ?', [id]);
+        if (result?.affectedRows === 0) {
             res.status(404).json({ error: 'User not found' });
         } else {
             res.status(200).json({ message: 'User deleted successfully' });
@@ -86,29 +99,29 @@ export const deleteUser = (dataSource: DataSource) => async (req: Request, res: 
 
 export const loginUser = (dataSource: DataSource) => async (req: Request, res: Response) => {
     const { username, password } = req.body;
-  
+
     if (!username || !password) {
-      res.status(400).json({ error: 'Invalid request' });
-      return;
+        res.status(400).json({ error: 'Invalid request' });
+        return;
     }
-  
+
     try {
-      const [rows] = await dataSource.query('SELECT * FROM users WHERE username = ?', [username]);
-      if (rows.length === 0) {
-        res.status(404).json({ error: 'User not found' });
-        return;
-      }
-  
-      const user = rows[0];
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        res.status(401).json({ error: 'Invalid password' });
-        return;
-      }
-  
-      const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
-      res.status(200).json({ token });
+        const [rows] = await dataSource.query('SELECT * FROM users WHERE username = ?', [username]);
+        if (rows.length === 0) {
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+
+        const user = rows[0];
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            res.status(401).json({ error: 'Invalid password' });
+            return;
+        }
+
+        const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
+        res.status(200).json({ token });
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+        res.status(500).json({ error: (error as Error).message });
     }
-  };
+};

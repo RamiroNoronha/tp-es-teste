@@ -12,12 +12,12 @@ export class Users {
     password: string;
 
     @CreateDateColumn() // Preenche automaticamente com a data/hora atual no momento da criação
-    createdAt: Date;
+    created_at: Date;
 
-    constructor(id: number, username: string, password: string, createdAt: Date) {
+    constructor(id: number, username: string, password: string, created_at: Date) {
         this.id = id;
         this.username = username;
         this.password = password;
-        this.createdAt = createdAt;
+        this.created_at = created_at;
     }
 }

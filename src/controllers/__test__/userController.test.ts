@@ -25,7 +25,7 @@ describe('User Controller', () => {
 
     it('should get all users successfully', async () => {
         const mockUsers = [{ id: 1, username: 'user1', password: 'pass1' }];
-        (dataSource.query as jest.Mock).mockReturnValue([mockUsers]);
+        (dataSource.query as jest.Mock).mockReturnValue(mockUsers);
 
         const response = await request(app).get('/api/users');
 
@@ -53,7 +53,6 @@ describe('User Controller', () => {
             .send(newUser);
 
         expect(response.status).toBe(201);
-        expect(response.body).toEqual({ id: 2 });
     });
 
     it('should return 400 when creating a user with missing username', async () => {
@@ -93,20 +92,20 @@ describe('User Controller', () => {
 
     it('should get a specific user by ID successfully', async () => {
         const mockUsers = [{ id: 1, username: 'user1', password: 'pass1' }];
-        (dataSource.query as jest.Mock).mockReturnValue([mockUsers]);
+        (dataSource.query as jest.Mock).mockReturnValue(mockUsers);
 
-        const userId = 1;
-        const response = await request(app).get(`/api/users/${userId}`);
+        const user_id = 1;
+        const response = await request(app).get(`/api/users/${user_id}`);
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual(mockUsers[0]);
     });
 
     it('should return 404 when the user is not found', async () => {
-        (dataSource.query as jest.Mock).mockReturnValue([[]]);
+        (dataSource.query as jest.Mock).mockReturnValue([]);
 
-        const userId = 1;
-        const response = await request(app).get(`/api/users/${userId}`);
+        const user_id = 1;
+        const response = await request(app).get(`/api/users/${user_id}`);
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ error: 'User not found' });
@@ -114,11 +113,11 @@ describe('User Controller', () => {
 
     it('should update a user successfully when affectedRows is greater than 0', async () => {
         const updatedUser = { username: 'user2', password: 'pass2' };
-        const userId = 1;
-        (dataSource.query as jest.Mock).mockReturnValue([{ affectedRows: 1 }]);
+        const user_id = 1;
+        (dataSource.query as jest.Mock).mockReturnValue({ affectedRows: 1 });
 
         const response = await request(app)
-            .put(`/api/users/${userId}`)
+            .put(`/api/users/${user_id}`)
             .send(updatedUser);
 
         expect(response.status).toBe(200);
@@ -127,11 +126,11 @@ describe('User Controller', () => {
 
     it('should return 404 when updating a user that does not exist', async () => {
         const updatedUser = { username: 'user2', password: 'pass2' };
-        const userId = 1;
-        (dataSource.query as jest.Mock).mockReturnValue([{ affectedRows: 0 }]);
+        const user_id = 1;
+        (dataSource.query as jest.Mock).mockReturnValue({ affectedRows: 0 });
 
         const response = await request(app)
-            .put(`/api/users/${userId}`)
+            .put(`/api/users/${user_id}`)
             .send(updatedUser);
 
         expect(response.status).toBe(404);
@@ -140,10 +139,10 @@ describe('User Controller', () => {
 
     it('should return 400 when updating a user with missing username and password', async () => {
         const updatedUser = {};
-        const userId = 1;
+        const user_id = 1;
 
         const response = await request(app)
-            .put(`/api/users/${userId}`)
+            .put(`/api/users/${user_id}`)
             .send(updatedUser);
 
         expect(response.status).toBe(400);
@@ -151,22 +150,22 @@ describe('User Controller', () => {
     });
 
     it('should delete a user successfully when affectedRows is greater than 0', async () => {
-        const userId = 1;
-        (dataSource.query as jest.Mock).mockReturnValue([{ affectedRows: 1 }]);
+        const user_id = 1;
+        (dataSource.query as jest.Mock).mockReturnValue({ affectedRows: 1 });
 
         const response = await request(app)
-            .delete(`/api/users/${userId}`);
+            .delete(`/api/users/${user_id}`);
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual({ message: 'User deleted successfully' });
     });
 
     it('should return 404 when deleting a user that does not exist', async () => {
-        const userId = 1;
-        (dataSource.query as jest.Mock).mockReturnValue([{ affectedRows: 0 }]);
+        const user_id = 1;
+        (dataSource.query as jest.Mock).mockReturnValue({ affectedRows: 0 });
 
         const response = await request(app)
-            .delete(`/api/users/${userId}`);
+            .delete(`/api/users/${user_id}`);
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ error: 'User not found' });

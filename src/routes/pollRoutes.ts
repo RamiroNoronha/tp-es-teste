@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getPolls, createPoll, votePoll, getPollResults, deletePoll, setPollExpiration } from '../controllers/pollController';
+import { getPolls, createPoll, votePoll, getPollResults, deletePoll, setPollExpiration, setPollOptions, getPollOptions } from '../controllers/pollController';
 import { DataSource } from 'typeorm';
 
 const createPollRoutes = (dataSource: DataSource) => {
@@ -11,6 +11,8 @@ const createPollRoutes = (dataSource: DataSource) => {
     router.get('/polls/:poll_id/results', getPollResults(dataSource));
     router.post('/polls/expire/:poll_id', setPollExpiration(dataSource));
     router.delete('/polls/:poll_id', deletePoll(dataSource));
+    router.post('/polls/:poll_id/options', setPollOptions(dataSource));
+    router.get('/polls/:poll_id/options', getPollOptions(dataSource)); // New route for getting poll options
 
     return router;
 };
