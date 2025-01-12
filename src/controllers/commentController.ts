@@ -10,13 +10,14 @@ export const addComment = (dataSource: DataSource) => async (req: Request, res: 
       return;
     }
 
-    const results = await dataSource.query(
+    const result = await dataSource.query(
       'INSERT INTO comments (poll_id, user_id, content, created_at) VALUES (?, ?, ?, ?)',
       [pollId, user_id, content, new Date()]
     );
-    console.log(results);
+    console.log(result);
+    const newId = result?.insertId ?? result;
     res.status(201).json({
-      id: (results).insertId,
+      id: newId,
       pollId,
       user_id,
       content,
@@ -30,7 +31,7 @@ export const addComment = (dataSource: DataSource) => async (req: Request, res: 
 export const getComments = (dataSource: DataSource) => async (req: Request, res: Response) => {
   const pollId = req.params.pollId;
   try {
-    const [results] = await dataSource.query(
+    const results = await dataSource.query(
       'SELECT * FROM comments WHERE poll_id = ?',
       [pollId]
     );

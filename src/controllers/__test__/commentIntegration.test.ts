@@ -70,8 +70,22 @@ describe('Integration tests - Users', () => {
     it('Should inset a new comment correctly', async () => {
         const response = await request(app).post('/api/comments').send({ pollId: 1, user_id: 1, content: "Comentário de teste" });
 
+        expect(response.status).toBe(201);
+        expect(response.body).toEqual({ id: 11, pollId: 1, user_id: 1, content: "Comentário de teste" });
+
+        const allComments = await dataSource.getRepository(Comments).find();
+
+        expect(allComments.find((comment) => comment.id === 11)).toBeTruthy();
+    });
+
+    it('Should get all comments from a specific poll', async () => {
+        const response = await request(app).get('/api/comments/1');
+
         expect(response.status).toBe(200);
-        console.log(response.body);
+
+        const allComments = await dataSource.getRepository(Comments).find();
+        const commentsForPollIdOne = allComments.filter((comment) => comment.poll_id === 1);
+        expect(response.body.length).toEqual(commentsForPollIdOne.length);
     });
 
 });

@@ -23,7 +23,7 @@ describe('Comment Controller', () => {
 
   it('should add a new comment successfully', async () => {
     const mockResult = { insertId: 1 };
-    (dataSource.query as jest.Mock).mockReturnValue([mockResult]);
+    (dataSource.query as jest.Mock).mockReturnValue(mockResult);
 
     const response = await request(app)
       .post('/comments')
@@ -35,7 +35,7 @@ describe('Comment Controller', () => {
 
   it('should retrieve comments for a specific poll', async () => {
     const mockComments = [{ id: 1, pollId: 1, user_id: 1, content: 'Test comment', created_at: '2023-01-01T00:00:00.000Z' }];
-    (dataSource.query as jest.Mock).mockReturnValue([mockComments]);
+    (dataSource.query as jest.Mock).mockReturnValue(mockComments);
 
     const response = await request(app).get('/comments/1');
 
