@@ -8,7 +8,6 @@ import { beforeAll, afterAll, describe, expect, it, jest } from '@jest/globals';
 import { Users } from '../../entities/user';
 import testConfig from '../../config/dbConfigTest';
 import usersTable from './__slug__/usersTable';
-import exp from 'constants';
 
 const app = express();
 app.use(bodyParser.json());

@@ -5,8 +5,6 @@ import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { addComment, getComments } from '../commentController';
 import { dataSource } from '../../config/dbConfig';
 
-
-
 const app = express();
 app.use(bodyParser.json());
 app.post('/comments', addComment(dataSource));

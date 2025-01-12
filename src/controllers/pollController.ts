@@ -30,7 +30,6 @@ export const createPoll = (dataSource: DataSource) => async (req: Request, res: 
         );
         res.status(201).json({ id: (result as any).insertId });
     } catch (error) {
-        console.error('Error creating poll:', error);
         res.status(500).json({ error: (error as Error).message });
     }
 };
@@ -48,8 +47,6 @@ export const votePoll = (dataSource: DataSource) => async (req: Request, res: Re
             'SELECT closed_at FROM polls WHERE id = ?',
             [poll_id]
         );
-
-        console.log(pollRows)
 
         if (!pollRows.length) {
             res.status(404).json({ error: 'Poll not found' });
@@ -127,7 +124,6 @@ export const deletePoll = (dataSource: DataSource) => async (req: Request, res: 
 
         res.status(200).json({ message: 'Poll deleted successfully' });
     } catch (error) {
-        console.error('Delete poll error:', error);
         res.status(500).json({ error: (error as Error).message });
     }
 };
@@ -224,7 +220,6 @@ export const setPollOptions = (dataSource: DataSource) => async (req: Request, r
 
         res.status(200).json({ message: 'Poll options set successfully' });
     } catch (error) {
-        console.error('Error setting poll options:', error);
         res.status(500).json({ error: (error as Error).message });
     }
 };
@@ -247,7 +242,6 @@ export const getPollOptions = (dataSource: DataSource) => async (req: Request, r
 
         res.status(200).json(options);
     } catch (error) {
-        console.error('Error getting poll options:', error);
         res.status(500).json({ error: (error as Error).message });
     }
 };

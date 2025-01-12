@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
-
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Users } from './user';
 import { Polls } from './poll';
 
@@ -8,22 +7,22 @@ export class Comments {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Polls, poll => poll.id)
-    poll: Polls;
+    @Column()
+    poll_id: number;
 
-    @ManyToOne(() => Users, user => user.id)
-    user: Users;
+    @Column()
+    user_id: number;
 
-    @Column('text')
+    @Column()
     content: string;
 
-    @CreateDateColumn()
+    @Column()
     created_at: Date;
 
-    constructor(id: number, poll: Polls, user: Users, content: string, created_at: Date) {
+    constructor(id: number, poll_id: number, user_id: number, content: string, created_at: Date) {
         this.id = id;
-        this.poll = poll;
-        this.user = user;
+        this.poll_id = poll_id;
+        this.user_id = user_id;
         this.content = content;
         this.created_at = created_at;
     }
